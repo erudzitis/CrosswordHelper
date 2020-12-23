@@ -1,0 +1,153 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Krustvārdu mīklas asistents</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="icon" href="https://freepngimg.com/download/bulb/36712-7-light-bulb-clipart.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static 'main/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/c0857c835e.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
+</head>
+<body>
+    <h1 class="ml12">Krustvārdu mīklas asistents</h1>
+
+    <div style="display: flex; flex-direction: column;align-items: center; justify-content: center; padding: 20px;">
+        <div class="input-box-toggler">
+            <div class="input-box">
+                <input type="text" id="n" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" maxlength="2" placeholder="Vārda garums">
+                <button id="addElements">Izvēlēties</button>
+            </div>
+        </div>
+        <div class="refresh_div"><i class="fas fa-redo" style="font-size: 18px;"></i></div>
+
+        <form style="display: flex; flex-direction: column;align-items: center; justify-content: center;" id="form" method="post">
+            {% csrf_token %}
+            <div id="addElementsHere" class="d-flex flex-column"></div>
+            <button class="search-div"><i class="fas fa-search" style="margin-right: 5px;"></i>Meklēt</button>
+        </form>
+
+        <div id="testDiv">
+
+        </div>
+
+    </div>
+
+
+    <script type="text/javascript">
+        var textWrapper = document.querySelector('.ml12');
+        textWrapper.innerHTML = textWrapper.textContent.replace(/\S/g, "<span class='letter'>$&</span>");
+
+        anime.timeline({loop: false})
+          .add({
+            targets: '.ml12 .letter',
+            translateX: [40,0],
+            translateZ: 0,
+            opacity: [0,1],
+            easing: "easeOutExpo",
+            duration: 1200,
+            delay: (el, i) => 500 + 30 * i
+          });
+
+         anime.timeline({loop: false})
+          .add({
+            targets: '.input-box-toggler',
+            translateX: [40,0],
+            translateZ: 0,
+            opacity: [0,1],
+            easing: "easeOutExpo",
+            duration: 1200,
+            delay: (el, i) => 500 + 30 * i
+          });
+
+        $(document).on('click', '.found-body', function() {
+            var name = this.getAttribute("name");
+            openInNewTab(name);
+        });
+
+        function openInNewTab(url) {
+          var win = window.open('https://tezaurs.lv/' + url, '_blank');
+          win.focus();
+        }
+
+        $(document).ready(function() {
+            $("#addElements").click(function(e){
+                if($('#n').val()) {
+                    var n = parseInt($(this).siblings("#n").val());
+
+                    for(var i = 0; i<n; i++){
+                        $("#addElementsHere").append("<input class='' id='generatedElement' maxLength='1' type='text' placeholder='Burts " + (i + 1) + "'>");
+                    }
+                }
+
+            });
+        });
+
+        $(".search-div").hide();
+        $('.refresh_div').hide();
+        $("#testDiv").hide();
+
+        $("#addElements").click(function(){
+            if($('#n').val()) {
+                $(".input-box-toggler").hide();
+                $(".search-div").show();
+                $('.refresh_div').show();
+            }
+        });
+
+        $(".refresh_div").click(function(){
+            $("#addElementsHere").empty();
+            $("#n").val("");
+            $(".input-box-toggler").show();
+            $('.refresh_div').hide();
+            $(".search-div").hide();
+            $("#testDiv").hide();
+        });
+
+        $(".search-div").click(function(){
+            $("#n").val("");
+            $(".input-box-toggler").hide();
+            $(".refresh_div").hide();
+            $(".search-div").hide();
+            $("#testDiv").fadeIn(300);
+        });
+
+        function getInputString(){
+            var endArray = [];
+            document.querySelectorAll('#generatedElement').forEach(function(el){
+                if (el.value == ""){
+                    endArray.push("x");
+                } else {
+                    endArray.push(el.value);
+                }
+            });
+            return endArray.join('');
+        }
+
+        $('#form').on('submit', function(e) {
+            e.preventDefault();
+            var fetchedData = getInputString();
+            $("#addElementsHere").empty();
+            $.ajax({
+                type: 'post',
+                url: '{% url 'main' %}',
+                data: {content: fetchedData},
+                headers: {
+                    'X-CSRFTOKEN': "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                success: function(response) {
+                    $('#testDiv').html(response['form'])
+                }
+            });
+        });
+    </script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>

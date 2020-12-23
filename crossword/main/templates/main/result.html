@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div class="result-header-div">
+        <div class="result-header-subdiv">
+            <h1 class="found-header">Atrasto vārdu skaits : {{ foundMatchingWords|length }}</h1>
+            <div class="result-back-to-home" onClick="window.location.reload();">
+                <i class="fas fa-home"></i>
+            </div>
+        </div>
+    </div>
+    <div class="animation-div">
+        {% for word in foundMatchingWords %}
+            <h1 class="found-body" name="{{ word }}">{{ word }}</h1>
+        {% endfor %}
+    </div>
+</body>
+</html>
